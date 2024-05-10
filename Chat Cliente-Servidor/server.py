@@ -26,3 +26,4 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
       if reply.lower() == "chau":
         print("Cerraste la conexión con el cliente.")
         break
+    s.close()

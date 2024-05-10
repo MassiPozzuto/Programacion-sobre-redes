@@ -20,3 +20,4 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     if reply.lower() == "chau":
       print("El servidor cerró la conexión.")
       break
+  s.close()
