@@ -15,18 +15,19 @@ def main():
     HOST = '127.0.0.1'
     PORT = 65432
 
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect((HOST, PORT))
 
-    # Crear un hilo para recibir mensajes mientras se envían
-    recibir_thread = threading.Thread(target = receive_messages, args = (client_socket,))
-    recibir_thread.start()
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
+        client_socket.connect((HOST, PORT))
 
-    while True:
-        message = input()
-        client_socket.send(message.encode())
+        # Crear un hilo para recibir mensajes mientras se envían
+        recibir_thread = threading.Thread(target = receive_messages, args = (client_socket,))
+        recibir_thread.start()
 
-    client_socket.close()
+        while True:
+            message = input()
+            client_socket.send(message.encode())
+
+        client_socket.close()
 
 if __name__ == "__main__":
     main()
