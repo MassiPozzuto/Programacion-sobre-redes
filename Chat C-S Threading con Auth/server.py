@@ -30,28 +30,27 @@ def handle_client(client_socket, client_address, database):
         password = client_socket.recv(1024).decode()
 
         user = database.DBQuery(f"SELECT * FROM usuarios WHERE username = '{username}' AND password = '{password}'")
-                
         if(len(user) == 1):
             user = user[0]
             client_socket.send("Se ha iniciado sesión correctamente".encode())
             break
         else:
-            client_socket.send("Error al iniciar sesión. Nombre de usuario y/o contraseña incorrectos".encode())
+            client_socket.send("Error, nombre de usuario y/o contraseña incorrectos".encode())
+        
         
     # Se agrega el nuevo cliente a la lista de clientes conectados
     connected_clients.append((client_socket, client_address))
-
+    
     # Recibo los mensajes del cliente y los reenvió a los demás
-    client_socket.send(f"Escribe en la consola para enviar un mensaje por el chat global :).".encode())
+    client_socket.send(f"Escribe en la consola para enviar un mensaje por el chat global :)".encode())
     while True:
         message = client_socket.recv(1024).decode()
         if not message:
             break
         print(f"Mensaje recibido de {client_address[0]}:{client_address[1]}: {message}")
-        
+    
         # Guardo el mensaje en la base de datos
         database.DBQuery(f"INSERT INTO mensajes(id_origen, mensaje, id_destino) VALUES ({user['id']},'{message}', NULL)")
-        
         # Llamo a la funcion broadcast para reenviar este mensaje a los demas clientes
         broadcast(message, client_socket, username)
 
