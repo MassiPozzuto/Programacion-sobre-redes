@@ -1,3 +1,5 @@
+# pip install mysql
+# pip install mysql-connector-python
 import mysql.connector as mysql
 import sys
 import re
