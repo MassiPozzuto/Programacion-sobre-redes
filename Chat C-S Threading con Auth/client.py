@@ -1,5 +1,6 @@
 import socket
 import threading
+from plyer import notification
 
 def receive_messages(socket_cliente):
     while True:
@@ -7,7 +8,19 @@ def receive_messages(socket_cliente):
             data = socket_cliente.recv(1024)
             if not data:
                 break
-            print(data.decode())
+
+            dataDecoded = data.decode()
+            # Notificaciones de mensajes
+            if dataDecoded.startswith('Notification'):
+                dataNotification = dataDecoded.split(':')
+                notification.notify(
+                    title = 'Tienes una nueva notificación',
+                    message = dataNotification[1],
+                    app_name = 'Chat Cliente-Servidor',
+                    timeout = 10,  # Duración de la notificación en segundos
+                )
+            else:
+                print(dataDecoded)
         except:
             break
 

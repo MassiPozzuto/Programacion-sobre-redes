@@ -54,12 +54,12 @@ def broadcast(message, sender_socket, user, database):
         database.DBQuery(f"INSERT INTO mensajes(id_origen, mensaje, id_destino, readed) VALUES ({user['id']},'{message}', NULL, NULL)")
         for client_socket, _, username in connected_clients:
             if client_socket != sender_socket:
-                if currentChats[username] != []:
-                    # El usuario (de x iteración) que esta conectado en el chat pero que no se encuentra en el global, no recibira el mensaje ni una notificacion 
-                    # porque siento que seria tosco si hubriesen varias personas conectadas.
-                    break
                 try:
-                    client_socket.send(f"{user['username']}: {message}".encode())
+                    if currentChats[username] != []:
+                        # El usuario (de x iteración) que esta conectado en el chat pero que no se encuentra en el global, recibira una notificacion 
+                        client_socket.send(f"Notification:Hay nuevos mensajes en el chat global".encode())
+                    else:
+                        client_socket.send(f"{user['username']}: {message}".encode())
                 except:
                     # En caso de que haya un error al enviar el mensaje a algun cliente, se cierra la conexión y se elimina de la lista de clientes conectados
                     connected_clients.remove((client_socket, _, username))
@@ -79,7 +79,7 @@ def broadcast(message, sender_socket, user, database):
                             insertMesaggeToBD = (f"INSERT INTO mensajes(id_origen, mensaje, id_destino, readed) VALUES ({user['id']},'{message}', {currentChats[user['username']]['id']}, 1)")
                     else:
                         # El usuario (de x iteración) que esta conectado en el chat pero que no se encuentra en el mutuo, recibira una notificacion
-                        client_socket.send(f"{user['username']} te envió un mensaje por privado".encode())
+                        client_socket.send(f"Notification:{user['username']} te envió un mensaje por privado".encode())
                 except:
                     connected_clients.remove((client_socket, _, username))
                     client_socket.close()
