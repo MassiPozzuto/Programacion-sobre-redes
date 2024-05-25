@@ -156,10 +156,13 @@ def handle_client(client_socket, client_address, database):
                                                                 (id_origen = {user['id']} AND id_destino = {currentChats[user['username']]['id']}) 
                                                                 OR 
                                                                 (id_origen = {currentChats[user['username']]['id']} AND id_destino = {user['id']})""")
-                    for previousMessage in previousMessages:
+                    chargeMessages = ""
+                    for i, previousMessage in enumerate(previousMessages):
+                        # Variable para saber el nombre de usuario de quien envia el mensaje de x iteracion
                         messageUser = user['username'] if (previousMessage['id_origen'] == user['id']) else currentChats[user['username']]['username']
-                        # Hay un problema visual al imprimir los mensajes previos, salen pegados si no le pones el \n o sale el primero doble si le pones el \n
-                        client_socket.send(f"{messageUser} ({previousMessage['created_at']}): {previousMessage['mensaje']}\n".encode())
+                        chargeMessages += f"{messageUser} ({previousMessage['created_at']}): {previousMessage['mensaje']}"
+                        if(i != len(previousMessages) - 1): chargeMessages += f"\n"
+                    client_socket.send(chargeMessages.encode())
                     
                     # Actualizo los mensajes que no habia leido aun
                     database.DBQuery(f"UPDATE mensajes SET readed = 1 WHERE id_destino = {user['id']} AND readed IS NULL")
