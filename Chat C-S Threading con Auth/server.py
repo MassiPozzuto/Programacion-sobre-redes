@@ -5,23 +5,30 @@ from database import Database
 # Lista para almacenar todos los clientes conectados
 connected_clients = []
 
+# Diccionario que contendra en que chat se encuentra cada usuario actualmente
+currentChats = dict()
 
-def commands(command, client_socket, database, chatInfo, user):
+
+def commands(command, client_socket, database, user):
+    global currentChats
     response = "El comando ingresado no existe"
     if command == '/help':
         response = "Los comandos disponibles son: \n  /sendTo <username>: Seleccionar el chat en el que enviaras mensajes, si colocas 'global' iras a un chat con todos los usuarios\n  /info: Indica el chat en el que te encuentras en ese momento\n  /help: Muestra todos los comandos disponibles y sus funciones\n  /exit: Cierra la conexión"
 
     elif command.find('/sendTo') != -1:
         chatToChange = command.split()
-        if chatToChange[1] == 'global':
-            chatInfo = []
+        if len(chatToChange) == 1:
+            response = f"Debes ingresar un parametro como un usuario o global"
+
+        elif chatToChange[1] == 'global':
+            currentChats[user['username']] = []
             response = f"Te has cambiado al chat global"
         else:
             if chatToChange[1] != user['username']:
                 # Verificar que exista ese usuario
                 targetUser = database.DBQuery(f"SELECT * FROM usuarios WHERE username = '{chatToChange[1]}'")
                 if(len(targetUser) == 1):
-                    chatInfo = targetUser[0]
+                    currentChats[user['username']] = targetUser[0]  
                     response = f"Te has cambiado al chat de '{targetUser[0]['username']}'"
                 else:
                     response = f"El nombre de usuario '{chatToChange[1]}' no existe"
@@ -29,42 +36,55 @@ def commands(command, client_socket, database, chatInfo, user):
                 response = "No puedes tener un chat contigo mismo"
 
     elif command == '/info':
-        if chatInfo == []:
+        if currentChats[user['username']] == []:
             response = f"Te encontras en el chat global"
         else:
-            response = f"Te encontras en el chat de '{chatInfo['username']}'"    
+            response = f"Te encontras en el chat de '{currentChats[user['username']]['username']}'"    
     
     client_socket.send(response.encode())
-    return chatInfo
+    return currentChats[user['username']]
 
 
 # Función para reenviar los mensajes de un cliente a todos los demas clientes
-def broadcast(message, sender_socket, user, chatInfo, database):
-    if chatInfo == []:
+def broadcast(message, sender_socket, user, database):
+    global currentChats
+    if currentChats[user['username']] == []:
         # Enviar el mensaje por el chat global
         # Guardo el mensaje en la base de datos
         database.DBQuery(f"INSERT INTO mensajes(id_origen, mensaje, id_destino, readed) VALUES ({user['id']},'{message}', NULL, NULL)")
-        for client_socket, _, _ in connected_clients:
+        for client_socket, _, username in connected_clients:
             if client_socket != sender_socket:
+                if currentChats[username] != []:
+                    # El usuario (de x iteración) que esta conectado en el chat pero que no se encuentra en el global, no recibira el mensaje ni una notificacion 
+                    # porque siento que seria tosco si hubriesen varias personas conectadas.
+                    break
                 try:
                     client_socket.send(f"{user['username']}: {message}".encode())
                 except:
                     # En caso de que haya un error al enviar el mensaje a algun cliente, se cierra la conexión y se elimina de la lista de clientes conectados
-                    connected_clients.remove((client_socket, _, _))
+                    connected_clients.remove((client_socket, _, username))
                     client_socket.close()
     else:
         # Enviar el mensaje a un usuario especifico
         # Guardo el mensaje en la base de datos
-        database.DBQuery(f"INSERT INTO mensajes(id_origen, mensaje, id_destino, readed) VALUES ({user['id']},'{message}', {chatInfo['id']}, 0)")
+        insertMesaggeToBD = f"INSERT INTO mensajes(id_origen, mensaje, id_destino, readed) VALUES ({user['id']},'{message}', {currentChats[user['username']]['id']}, NULL)"
         for client_socket, _, username in connected_clients:
-            if username == chatInfo['username']:
+            if username == currentChats[user['username']]['username']:
                 try:
-                    #client_socket.send(f"{user['username']} te envió el siguiente mensaje por privado: {message}".encode())
-                    client_socket.send(f"{user['username']} te envió un mensaje por privado".encode())
+                    if currentChats[username] != []:
+                        if currentChats[username]['username'] == user['username']:
+                            # El usuario (de x iteración) que esta conectado en el chat mutuo, recibira el mensaje (siguiendo el chat) 
+                            client_socket.send(f"{user['username']}: {message}".encode())
+                            # Inserto el mensaje en la BD marcando la columna readed como true
+                            insertMesaggeToBD = (f"INSERT INTO mensajes(id_origen, mensaje, id_destino, readed) VALUES ({user['id']},'{message}', {currentChats[user['username']]['id']}, 1)")
+                    else:
+                        # El usuario (de x iteración) que esta conectado en el chat pero que no se encuentra en el mutuo, recibira una notificacion
+                        client_socket.send(f"{user['username']} te envió un mensaje por privado".encode())
                 except:
                     connected_clients.remove((client_socket, _, username))
                     client_socket.close()
                 break
+        database.DBQuery(insertMesaggeToBD)
 
 
 def login(client_socket, database):
@@ -89,6 +109,7 @@ def login(client_socket, database):
 # Función que contiene lo que realizan los threads
 def handle_client(client_socket, client_address, database):
     global connected_clients
+    global currentChats
     print(f"Conexión aceptada de {client_address[0]}:{client_address[1]}")
     
     #Log-in
@@ -100,19 +121,22 @@ def handle_client(client_socket, client_address, database):
         
     # Se agrega el nuevo cliente a la lista de clientes conectados
     connected_clients.append((client_socket, client_address, user['username']))
+    currentChats[user['username']] = []   
     
     # Recibo los mensajes del cliente y los reenvió a los demás
     client_socket.send(f"Te encuentras en el chat global, tus mensajes los podrán ver todos. Para saber como enviar mensajes a otros ingresa '/help'".encode())
     
-    # Reviso si no tiene mensajes sin leer
-    unreadMessages = database.DBQuery(f"SELECT COUNT(*) as cant_messages, u.username FROM mensajes m INNER JOIN usuarios u ON u.id = m.id_origen WHERE m.readed = 0 AND m.id_destino = {user['id']} GROUP BY u.username")
+    # Reviso si tiene mensajes sin leer
+    unreadMessages = database.DBQuery(f"""SELECT COUNT(*) as cant_messages, u.username FROM mensajes m 
+                                            INNER JOIN usuarios u ON u.id = m.id_origen 
+                                            WHERE m.readed IS NULL AND m.id_destino = {user['id']} GROUP BY u.username""")
     if unreadMessages != []:
         noticeMessage = ""
         for unreadMessagesChat in unreadMessages:
             noticeMessage += f"Tienes {unreadMessagesChat['cant_messages']} mensajes sin leer en el chat de {unreadMessagesChat['username']}. "
         client_socket.send(noticeMessage.encode())
                                             
-    chatInfo = []
+    currentChats[user['username']] = []
     while True:
         try:
             message = client_socket.recv(1024).decode()
@@ -121,17 +145,24 @@ def handle_client(client_socket, client_address, database):
             print(f"Mensaje recibido de {client_address[0]}:{client_address[1]}: {message}")
             
             if message[0] == '/':
-                chatInfo = commands(message, client_socket, database, chatInfo, user)
-                if chatInfo != []:
-                    previousMessages = database.DBQuery(f"SELECT * FROM mensajes WHERE (id_origen = {user['id']} AND id_destino = {chatInfo['id']}) OR (id_origen = {chatInfo['id']} AND id_destino = {user['id']})")
+                currentChats[user['username']] = commands(message, client_socket, database, user)
+                if currentChats[user['username']] != []:
+                    # Si se cambio a un chat especifico, entonces cargo los mensajes previos de ese chat
+                    previousMessages = database.DBQuery(f"""SELECT * FROM mensajes 
+                                                            WHERE 
+                                                                (id_origen = {user['id']} AND id_destino = {currentChats[user['username']]['id']}) 
+                                                                OR 
+                                                                (id_origen = {currentChats[user['username']]['id']} AND id_destino = {user['id']})""")
                     for previousMessage in previousMessages:
-                        userMessage = user['username'] if (previousMessage['id_origen'] == user['id']) else chatInfo['username']
-                        client_socket.send(f"{userMessage} ({previousMessage['created_at']}): {previousMessage['mensaje']}".encode())
+                        messageUser = user['username'] if (previousMessage['id_origen'] == user['id']) else currentChats[user['username']]['username']
+                        # Hay un problema visual al imprimir los mensajes previos, salen pegados si no le pones el \n o sale el primero doble si le pones el \n
+                        client_socket.send(f"{messageUser} ({previousMessage['created_at']}): {previousMessage['mensaje']}\n".encode())
                     
-                    database.DBQuery(f"UPDATE mensajes SET readed = 1 WHERE id_destino = {user['id']} AND readed != 1")
+                    # Actualizo los mensajes que no habia leido aun
+                    database.DBQuery(f"UPDATE mensajes SET readed = 1 WHERE id_destino = {user['id']} AND readed IS NULL")
             else:
                 # Llamo a la funcion broadcast para reenviar este mensaje a los demas clientes
-                broadcast(message, client_socket, user, chatInfo, database)
+                broadcast(message, client_socket, user, database)
         except:
             print(f"Conexión cerrada de {client_address[0]}:{client_address[1]}")
             connected_clients.remove((client_socket, client_address, user['username']))

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 18-05-2024 a las 05:00:58
+-- Tiempo de generación: 25-05-2024 a las 05:33:58
 -- Versión del servidor: 10.4.22-MariaDB
 -- Versión de PHP: 8.1.2
 
@@ -32,6 +32,7 @@ CREATE TABLE `mensajes` (
   `id_origen` int(11) NOT NULL,
   `mensaje` varchar(100) NOT NULL,
   `id_destino` int(11) DEFAULT NULL,
+  `readed` bit(1) DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -39,12 +40,17 @@ CREATE TABLE `mensajes` (
 -- Volcado de datos para la tabla `mensajes`
 --
 
-INSERT INTO `mensajes` (`id`, `id_origen`, `mensaje`, `id_destino`, `created_at`) VALUES
-(11, 7, 'Hola', NULL, '2024-05-17 23:58:21'),
-(12, 5, 'Todo bien?', NULL, '2024-05-17 23:58:31'),
-(13, 7, 'Este prueba es unn mogolico', 6, '2024-05-17 23:58:48'),
-(14, 7, 'si amigo, vos?', NULL, '2024-05-17 23:59:09'),
-(15, 5, 'bien bien', NULL, '2024-05-17 23:59:17');
+INSERT INTO `mensajes` (`id`, `id_origen`, `mensaje`, `id_destino`, `readed`, `created_at`) VALUES
+(11, 7, 'Hola', NULL, NULL, '2024-05-17 23:58:21'),
+(12, 5, 'Todo bien?', NULL, NULL, '2024-05-17 23:58:31'),
+(13, 7, 'Este prueba es unn mogolico', 6, b'1', '2024-05-17 23:58:48'),
+(14, 7, 'si amigo, vos?', NULL, NULL, '2024-05-17 23:59:09'),
+(15, 5, 'bien bien', NULL, NULL, '2024-05-17 23:59:17'),
+(16, 7, 'hole', NULL, NULL, '2024-05-18 05:41:01'),
+(17, 6, 'Si, alto bobo', 7, b'1', '2024-05-24 23:09:29'),
+(28, 7, 'hola', 5, b'1', '2024-05-24 23:47:37'),
+(29, 5, 'qonda?', 7, b'1', '2024-05-24 23:47:49'),
+(32, 7, 'aca tranqui, vos?', 5, NULL, '2024-05-25 00:01:32');
 
 -- --------------------------------------------------------
 
@@ -57,7 +63,7 @@ CREATE TABLE `usuarios` (
   `username` varchar(40) NOT NULL,
   `password` varchar(50) NOT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT NULL,
   `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -95,7 +101,7 @@ ALTER TABLE `usuarios`
 -- AUTO_INCREMENT de la tabla `mensajes`
 --
 ALTER TABLE `mensajes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
