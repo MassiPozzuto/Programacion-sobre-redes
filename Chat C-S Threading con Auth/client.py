@@ -25,6 +25,7 @@ def main():
 
         while True:
             message = input()
+            if (message == '/exit'): break
             client_socket.send(message.encode())
 
         client_socket.close()
