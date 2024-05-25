@@ -63,6 +63,7 @@ def broadcast(message, sender_socket, user, database):
                 except:
                     # En caso de que haya un error al enviar el mensaje a algun cliente, se cierra la conexión y se elimina de la lista de clientes conectados
                     connected_clients.remove((client_socket, _, username))
+                    del currentChats[username]
                     client_socket.close()
     else:
         # Enviar el mensaje a un usuario especifico
@@ -71,8 +72,7 @@ def broadcast(message, sender_socket, user, database):
         for client_socket, _, username in connected_clients:
             if username == currentChats[user['username']]['username']:
                 try:
-                    if currentChats[username] != []:
-                        if currentChats[username]['username'] == user['username']:
+                    if currentChats[username] != [] and currentChats[username]['username'] == user['username']:
                             # El usuario (de x iteración) que esta conectado en el chat mutuo, recibira el mensaje (siguiendo el chat) 
                             client_socket.send(f"{user['username']}: {message}".encode())
                             # Inserto el mensaje en la BD marcando la columna readed como true
@@ -82,6 +82,7 @@ def broadcast(message, sender_socket, user, database):
                         client_socket.send(f"Notification:{user['username']} te envió un mensaje por privado".encode())
                 except:
                     connected_clients.remove((client_socket, _, username))
+                    del currentChats[username]
                     client_socket.close()
                 break
         database.DBQuery(insertMesaggeToBD)
@@ -119,7 +120,7 @@ def handle_client(client_socket, client_address, database):
         client_socket.close()
         return
         
-    # Se agrega el nuevo cliente a la lista de clientes conectados
+    # Se agrega el nuevo cliente a la lista de clientes conectados 
     connected_clients.append((client_socket, client_address, user['username']))
     currentChats[user['username']] = []   
     
@@ -166,6 +167,7 @@ def handle_client(client_socket, client_address, database):
         except:
             print(f"Conexión cerrada de {client_address[0]}:{client_address[1]}")
             connected_clients.remove((client_socket, client_address, user['username']))
+            del currentChats[user['username']]
             client_socket.close()
             break
     
