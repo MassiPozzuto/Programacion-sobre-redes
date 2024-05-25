@@ -14,8 +14,8 @@ def receive_messages(socket_cliente):
             if dataDecoded.startswith('Notification'):
                 dataNotification = dataDecoded.split(':')
                 notification.notify(
-                    title = 'Tienes una nueva notificación',
-                    message = dataNotification[1],
+                    title = dataNotification[1],
+                    message = dataNotification[2],
                     app_name = 'Chat Cliente-Servidor',
                     timeout = 10,  # Duración de la notificación en segundos
                 )

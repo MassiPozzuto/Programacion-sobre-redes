@@ -57,7 +57,7 @@ def broadcast(message, sender_socket, user, database):
                 try:
                     if currentChats[username] != []:
                         # El usuario (de x iteración) que esta conectado en el chat pero que no se encuentra en el global, recibira una notificacion 
-                        client_socket.send(f"Notification:Hay nuevos mensajes en el chat global".encode())
+                        client_socket.send(f"Notification:Tienes una nueva notificación:Hay nuevos mensajes en el chat global".encode())
                     else:
                         client_socket.send(f"{user['username']}: {message}".encode())
                 except:
@@ -79,7 +79,7 @@ def broadcast(message, sender_socket, user, database):
                             insertMesaggeToBD = (f"INSERT INTO mensajes(id_origen, mensaje, id_destino, readed) VALUES ({user['id']},'{message}', {currentChats[user['username']]['id']}, 1)")
                     else:
                         # El usuario (de x iteración) que esta conectado en el chat pero que no se encuentra en el mutuo, recibira una notificacion
-                        client_socket.send(f"Notification:{user['username']} te envió un mensaje por privado".encode())
+                        client_socket.send(f"Notification:Tienes una nueva notificación:{user['username']} te envió un mensaje por privado".encode())
                 except:
                     connected_clients.remove((client_socket, _, username))
                     del currentChats[username]
@@ -128,13 +128,15 @@ def handle_client(client_socket, client_address, database):
     client_socket.send(f"Te encuentras en el chat global, tus mensajes los podrán ver todos. Para saber como enviar mensajes a otros ingresa '/help'".encode())
     
     # Reviso si tiene mensajes sin leer
-    unreadMessages = database.DBQuery(f"""SELECT COUNT(*) as cant_messages, u.username FROM mensajes m 
+    unreadMessages = database.DBQuery(f"""SELECT u.username FROM mensajes m 
                                             INNER JOIN usuarios u ON u.id = m.id_origen 
                                             WHERE m.readed IS NULL AND m.id_destino = {user['id']} GROUP BY u.username""")
     if unreadMessages != []:
-        noticeMessage = ""
-        for unreadMessagesChat in unreadMessages:
-            noticeMessage += f"Tienes {unreadMessagesChat['cant_messages']} mensajes sin leer en el chat de {unreadMessagesChat['username']}. "
+        noticeMessage = "Notification:Tienes mensajes sin leer:Tienes mensajes sin leer en el chat de "
+        for indice, unreadMessagesChat in enumerate(unreadMessages):
+            if (indice > 0 and indice != len(unreadMessages) - 1) : noticeMessage += ", de "
+            elif (indice == len(unreadMessages) - 1) : noticeMessage += " y de "
+            noticeMessage += f"{unreadMessagesChat['username']}"
         client_socket.send(noticeMessage.encode())
                                             
     currentChats[user['username']] = []
