@@ -1,6 +1,7 @@
 import socket
 import threading
 from database import Database
+import datetime
 
 # Lista para almacenar todos los clientes conectados
 connected_clients = []
@@ -91,7 +92,7 @@ def chargePreviousMesage(currentChat, user, client_socket, database):
 
     if previousMessages != []:
         for i, previousMessage in enumerate(previousMessages):
-            chargeMessages += f"{previousMessage['username']} ({previousMessage['created_at']}): {previousMessage['mensaje']}"
+            chargeMessages += f"{previousMessage['username']} ({previousMessage['created_at'].strftime("%d/%m %H:%M")}): {previousMessage['mensaje']}"
             if(i != len(previousMessages) - 1): chargeMessages += f"\n"
     else: 
         chargeMessages = "Aún no hay mensajes en este chat. Envia un mensaje para iniciar la conversación"
@@ -113,7 +114,7 @@ def broadcast(message, sender_socket, user, database):
                         # El usuario (de x iteración) que esta conectado en el chat pero que no se encuentra en el global, recibira una notificacion 
                         client_socket.send(f"Notification:Tienes una nueva notificación:Hay nuevos mensajes en el chat global".encode())
                     else:
-                        client_socket.send(f"{user['username']}: {message}".encode())
+                        client_socket.send(f"{user['username']} ({datetime.datetime.now().strftime("%d/%m %H:%M")}): {message}".encode())
                 except:
                     # En caso de que haya un error al enviar el mensaje a algun cliente, se cierra la conexión y se elimina de la lista de clientes conectados
                     connected_clients.remove((client_socket, _, username))
@@ -128,7 +129,7 @@ def broadcast(message, sender_socket, user, database):
                 try:
                     if currentChats[username] != [] and currentChats[username]['username'] == user['username']:
                             # El usuario (de x iteración) que esta conectado en el chat mutuo, recibira el mensaje (siguiendo el chat) 
-                            client_socket.send(f"{user['username']}: {message}".encode())
+                            client_socket.send(f"{user['username']} ({datetime.datetime.now().strftime("%d/%m %H:%M")}): {message}".encode())
                             # Inserto el mensaje en la BD marcando la columna readed como true
                             insertMesaggeToBD = (f"INSERT INTO mensajes(id_origen, mensaje, id_destino, readed) VALUES ({user['id']},'{message}', {currentChats[user['username']]['id']}, 1)")
                     else:
