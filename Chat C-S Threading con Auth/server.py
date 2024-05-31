@@ -142,7 +142,7 @@ def broadcast(message, sender_socket, user, database):
         database.DBQuery(insertMesaggeToBD)
 
 # Función que contiene lo que realizan los threads
-def handle_client(client_socket, client_address, database):
+def handleClient(client_socket, client_address, database):
     global connected_clients
     global currentChats
     print(f"Conexión aceptada de {client_address[0]}:{client_address[1]}")
@@ -214,7 +214,7 @@ def main():
 
         while True:
             client_socket, client_address = server_socket.accept()
-            client_thread = threading.Thread(target=handle_client, args=(client_socket, client_address, database))
+            client_thread = threading.Thread(target=handleClient, args=(client_socket, client_address, database))
             client_thread.start()
 
 if __name__ == "__main__":
