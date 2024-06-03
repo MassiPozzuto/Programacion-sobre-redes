@@ -1,3 +1,4 @@
+#pip install plyer
 import socket
 import threading
 from plyer import notification
