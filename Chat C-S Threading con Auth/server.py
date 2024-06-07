@@ -16,12 +16,12 @@ class ChatServer:
         self.current_chats = {}
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.bind((self.host, self.port))
-        self.server_socket.listen(5)
         print(f"Servidor escuchando en {self.host}:{self.port}")
 
     
-    # Una vez inicializado, utilizo esta funcion para crear los threads
+    # Una vez inicializado, lo pongo en modo listen y creo los threads
     def startThreading(self):
+        self.server_socket.listen(5)
         while True:
             client_socket, client_address = self.server_socket.accept()
             client_thread = threading.Thread(target=self.handleClient, args=(client_socket, client_address))
