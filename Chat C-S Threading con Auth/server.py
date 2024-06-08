@@ -109,9 +109,13 @@ class ChatServer:
             else:
                 response = f"Te encontras en el chat de '{self.current_chats[user['username']]['username']}'"
         elif command == '/users':
-            response = "Los usuarios conectados actualmente son: "
-            for _, _, username in self.connected_clients:
-                response += f"\n   - {username}"
+            if len(self.connected_clients) > 1:
+                response = "Los usuarios conectados actualmente son: "
+                for _, _, username in self.connected_clients:
+                    if username != user['username']:
+                        response += f"\n   - {username}"
+            else:
+                response = "Actualmente solo vos estas conectado al chat."
         
         client_socket.send(response.encode())
         return self.current_chats[user['username']]
