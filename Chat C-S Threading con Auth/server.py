@@ -187,11 +187,12 @@ class ChatServer:
         )
         if unread_messages:
             notice_message = "Notification:Tienes mensajes sin leer:Tienes mensajes sin leer en el chat de "
-            for idx, unread_message in enumerate(unread_messages):
-                if idx > 0 and idx != len(unread_messages) - 1:
-                    notice_message += ", de "
-                elif idx == len(unread_messages) - 1:
-                    notice_message += " y de "
+            for i, unread_message in enumerate(unread_messages):
+                if len(unread_messages) > 1 and i > 0:
+                    if i != len(unread_messages) - 1:
+                        notice_message += ", de "
+                    else:#if i == len(unread_messages) - 1:
+                        notice_message += " y de "
                 notice_message += unread_message['username']
             client_socket.send(notice_message.encode())
 
