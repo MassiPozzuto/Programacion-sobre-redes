@@ -96,10 +96,11 @@ class ChatServer:
         response = "El comando ingresado no existe"
         if command == '/help':
             response = ("Los comandos disponibles son: \n"
-                        "  /sendTo <username>: Seleccionar el chat en el que enviaras mensajes, si colocas 'global' iras a un chat con todos los usuarios\n"
-                        "  /info: Indica el chat en el que te encuentras en ese momento\n"
-                        "  /help: Muestra todos los comandos disponibles y sus funciones\n"
-                        "  /exit: Cierra la conexión")
+                        "  /sendTo <username>: Seleccionar el chat en el que enviaras mensajes, si colocas 'global' iras a un chat con todos los usuarios, sino deberas colocar el username de determinado usuario.\n"
+                        "  /info: Indica el chat en el que te encuentras en ese momento.\n"
+                        "  /users: Enseña todos los usuarios conectados en este momento.\n"
+                        "  /help: Muestra todos los comandos disponibles y sus funciones.\n"
+                        "  /exit: Cierra la conexión.")
         elif command.startswith('/sendTo'):
             response = self.changeChat(command, user)
         elif command == '/info':
@@ -107,6 +108,10 @@ class ChatServer:
                 response = "Te encontras en el chat global"
             else:
                 response = f"Te encontras en el chat de '{self.current_chats[user['username']]['username']}'"
+        elif command == '/users':
+            response = "Los usuarios conectados actualmente son: "
+            for _, _, username in self.connected_clients:
+                response += f"\n   - {username}"
         
         client_socket.send(response.encode())
         return self.current_chats[user['username']]
