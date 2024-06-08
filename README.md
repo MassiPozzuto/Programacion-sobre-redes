@@ -16,4 +16,5 @@ Una vez el chat corriendo tendremos que loguearnos colocando primero un username
         1. /sendTo <username>: Seleccionar el chat en el que enviaras mensajes, si colocas 'global' iras a un chat con todos los usuarios, sino deberas colocar el username de determinado usuario.
         2. /info: Indica el chat en el que te encuentras en ese momento.
         3. /users: Enseña todos los usuarios conectados en este momento.
-        3. /help: Muestra todos los comandos disponibles y sus funciones.
+        4. /help: Muestra todos los comandos disponibles y sus funciones.
+        5. /exit: Cierra la conexión con el servidor.
