@@ -14,12 +14,16 @@ class ChatClient:
         receive_thread.start()
 
         while True:
-            message = input()
-            if message == '/exit':
-                break
-            self.client_socket.send(message.encode())
-
+            try:
+                message = input()
+                if message == '/exit':
+                    break
+                self.client_socket.send(message.encode())
+            except:
+                pass
+                #print("Por favor ingresa una cadena de texto")
         self.client_socket.close()
+
 
     def receive_messages(self):
         while True:
