@@ -36,7 +36,7 @@ class ChatServer:
         #Log-in
         user = self.login(client_socket)
         if not user:
-            print(f"Conexión cerrada de {client_address[0]}:{client_address[1]}")
+            print(f"Conexión cerrada de {client_address[0]}:{client_address[1]}. El cliente ha cerrado la conexión durante el log-in")
             client_socket.close()
             return
         
@@ -66,8 +66,8 @@ class ChatServer:
                 else:
                     # Llamo a la funcion broadcast para reenviar este mensaje a los demas clientes
                     self.broadcast(message, client_socket, user)
-            except:
-                print(f"Conexión cerrada de {client_address[0]}:{client_address[1]}")
+            except ConnectionResetError:
+                print(f"Conexión cerrada de {client_address[0]}:{client_address[1]}. El cliente ha cerrado la conexión mientras el server estaba esperando un mensaje (recv)")
                 self.connected_clients.remove((client_socket, client_address, user['username']))
                 del self.current_chats[user['username']]
                 client_socket.close()
@@ -82,7 +82,7 @@ class ChatServer:
                 username = client_socket.recv(1024).decode()
                 client_socket.send("Ingresa la contraseña: ".encode())
                 password = client_socket.recv(1024).decode()
-            except:
+            except ConnectionResetError:
                 return False
             
             user = self.database.DBQuery(f"SELECT * FROM usuarios WHERE username = '{username}' AND password = '{password}'")
@@ -203,7 +203,7 @@ class ChatServer:
             # Enviar el mensaje por el chat global
             # Guardo el mensaje en la base de datos
             self.database.DBQuery(f"INSERT INTO mensajes(id_origen, mensaje, id_destino, readed) VALUES ({user['id']},'{message}', NULL, NULL)")
-            for client_socket, _, username in self.connected_clients:
+            for client_socket, client_address, username in self.connected_clients:
                 if client_socket != sender_socket:
                     try:
                         if self.current_chats[username] != []:
@@ -211,9 +211,10 @@ class ChatServer:
                             client_socket.send("Notification:Tienes una nueva notificación:Hay nuevos mensajes en el chat global".encode())
                         else:
                             client_socket.send(f"{user['username']} ({datetime.datetime.now().strftime('%d/%m %H:%M')}): {message}".encode())
-                    except:
+                    except ConnectionResetError:
                         # En caso de que haya un error al enviar el mensaje a algun cliente, se cierra la conexión y se elimina de la lista de clientes conectados
-                        self.connected_clients.remove((client_socket, _, username))
+                        print(f"Conexión cerrada de {client_address[0]}:{client_address[1]}. El cliente no se encontraba conectado, al momento del envio de un mensaje por broadcast")
+                        self.connected_clients.remove((client_socket, client_address, username))
                         del self.current_chats[username]
                         client_socket.close()
         else:
@@ -222,7 +223,7 @@ class ChatServer:
             insert_message_to_bd = f"""INSERT INTO mensajes(id_origen, mensaje, id_destino, readed) 
                                         VALUES ({user['id']},'{message}', {self.current_chats[user['username']]['id']}, NULL)"""
             # Recorro el array que contiene los usuarios actualmente conectados con el servidor (connected_clients)
-            for client_socket, _, username in self.connected_clients:
+            for client_socket, client_address, username in self.connected_clients:
                 # Si x iteracion coincide con el usuario al cual desea mandarle el mensaje, entonces es porque esta conectado
                 if username == self.current_chats[user['username']]['username']:
                     try:
@@ -234,8 +235,10 @@ class ChatServer:
                         else:
                             # El usuario (de x iteración) al que se le quiere enviar el mensaje, se encuentra en otro chat (ej: el global) y recibira una notificacion
                             client_socket.send(f"Notification:Tienes una nueva notificación:{user['username']} te envió un mensaje por privado".encode())
-                    except:
-                        self.connected_clients.remove((client_socket, _, username))
+                    except ConnectionResetError:
+                        # En caso de que haya un error al enviar el mensaje a algun cliente, se cierra la conexión y se elimina de la lista de clientes conectados
+                        print(f"Conexión cerrada de {client_address[0]}:{client_address[1]}. El cliente no se encontraba conectado, al momento del envio de un mensaje por broadcast")
+                        self.connected_clients.remove((client_socket, client_address, username))
                         del self.current_chats[username]
                         client_socket.close()
                     break
