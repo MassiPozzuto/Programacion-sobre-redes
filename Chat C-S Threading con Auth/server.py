@@ -1,5 +1,6 @@
 import socket
 import threading
+import mysql.connector as mysql
 from database import Database
 import datetime
 
@@ -241,5 +242,9 @@ class ChatServer:
             self.database.DBQuery(insert_message_to_bd)
 
 if __name__ == "__main__":
-    chat_server = ChatServer()
-    chat_server.startThreading()
+    try:
+        chat_server = ChatServer()
+        chat_server.startThreading()
+    except mysql.errors.DatabaseError as e :
+        print("No pudo realizarse la conexión con la base de datos")
+        print(f"Se produjo una excepción: {e}")

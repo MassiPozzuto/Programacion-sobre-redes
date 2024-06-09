@@ -49,9 +49,10 @@ class ChatClient:
             timeout=10,
         )
 
-def main():
-    chat_client = ChatClient()
-    chat_client.start()
 
 if __name__ == "__main__":
-    main()
+    try:
+        chat_client = ChatClient()
+        chat_client.start()
+    except ConnectionRefusedError:
+        print("No se pudo establecer la conexión ya que el servidor la ha denegado")
