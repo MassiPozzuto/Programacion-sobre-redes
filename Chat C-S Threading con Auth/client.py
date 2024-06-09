@@ -19,9 +19,8 @@ class ChatClient:
                 if message == '/exit':
                     break
                 self.client_socket.send(message.encode())
-            except:
-                pass
-                #print("Por favor ingresa una cadena de texto")
+            except KeyboardInterrupt:
+                print("(Si esta deseando interrumpir el programa ingrese el comando '/exit')")
         self.client_socket.close()
 
 
