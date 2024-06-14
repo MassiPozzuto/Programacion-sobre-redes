@@ -14,12 +14,15 @@ class ChatClient:
         receive_thread.start()
 
         while True:
-            message = input()
-            if message == '/exit':
-                break
-            self.client_socket.send(message.encode())
-
+            try:
+                message = input()
+                if message == '/exit':
+                    break
+                self.client_socket.send(message.encode())
+            except KeyboardInterrupt:
+                print("(Si esta deseando interrumpir el programa ingrese el comando '/exit')")
         self.client_socket.close()
+
 
     def receive_messages(self):
         while True:
@@ -46,9 +49,10 @@ class ChatClient:
             timeout=10,
         )
 
-def main():
-    chat_client = ChatClient()
-    chat_client.start()
 
 if __name__ == "__main__":
-    main()
+    try:
+        chat_client = ChatClient()
+        chat_client.start()
+    except ConnectionRefusedError:
+        print("No se pudo establecer la conexión ya que el servidor la ha denegado")
