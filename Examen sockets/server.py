@@ -79,6 +79,7 @@ class ServerSocket():
                 client_socket.close()
         
     def commands(self, message, sender_socket = '', sender_username = ''):
+        response = ''
         if message.startswith('/all'):
             messageClear = message.split('/all ')
             if len(self.connected_clients) > 1:
