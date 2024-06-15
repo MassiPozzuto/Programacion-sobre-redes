@@ -36,7 +36,9 @@ class ServerSocket():
                 
                 if message.startswith('/'):
                     if message == '/close':
-                        break
+                        for client_socket, _, _ in self.connected_clients:
+                            self.connected_clients.remove(( client_socket, _, _))
+                            client_socket.close()
                     
                     if message.startswith('all') == False:
                         print(self.commands(message))
@@ -102,7 +104,7 @@ class ServerSocket():
         else:
             response = "El comando ingresado no existe"
         
-        #return response
+        return response
                     
             
         
