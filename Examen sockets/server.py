@@ -39,8 +39,7 @@ class ServerSocket():
                         for client_socket, _, _ in self.connected_clients:
                             self.connected_clients.remove(( client_socket, _, _))
                             client_socket.close()
-                    
-                    if message.startswith('all') == False:
+                    elif message.startswith('/all') == False:
                         print(self.commands(message))
                     else:
                         print("Ya le envias mensajes a todos los clientes")
@@ -72,11 +71,12 @@ class ServerSocket():
                 if message.startswith('/'):
                     response_command = self.commands(message, client_socket, userConnected) 
                     if message.startswith('/all') == False:
-                        client_socket.send(response_command) 
+                        client_socket.send(response_command.encode()) 
             except:
                 print("El cliente se ha desconectado 1")
                 self.connected_clients.remove((client_socket, client_address, userConnected))
                 client_socket.close()
+                break
         
     def commands(self, message, sender_socket = '', sender_username = ''):
         response = ''
@@ -87,7 +87,7 @@ class ServerSocket():
                     if client_socket != sender_socket:
                         client_socket.send(f"{sender_username}: {messageClear[1]}".encode())
             else:
-                sender_socket.send("Actualmente no hay clientes conectados")
+                sender_socket.send("Actualmente no hay clientes conectados".encode())
         elif message == '/ips':
             if self.connected_clients != []:
                 response = "Las IPS de los clientes conectados son:\n"
