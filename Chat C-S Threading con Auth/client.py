@@ -39,7 +39,6 @@ class ChatClient:
             except:
                 break
 
-    @staticmethod
     def show_notification(data_decoded):
         data_notification = data_decoded.split(':')
         notification.notify(
