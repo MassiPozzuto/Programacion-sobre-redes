@@ -1,4 +1,4 @@
-# Programacion sobre redes
+# Programación sobre redes
 
 ## Chat Cliente-Servidor
 El programa es un chat cliente-servidor. Utiliza threading para que varios clientes puedan conectarse en simultaneo. 
@@ -10,10 +10,10 @@ El programa es un chat cliente-servidor. Utiliza threading para que varios clien
         3. En tercer lugar, tenes que crear una BD llamada 'chat' e importar el archivo chat.sql.
         4. En cuarto lugar, debes ejecutar el archivo server.py y, luego, el client.py.
 
-Una vez el chat corriendo tendremos que loguearnos colocando primero un username y luego su contraseña, estos los podremos ver desde '127.0.0.1/phpmyadmin', en la respectiva BD 'chat'. Cuando estemos logueados ya podriamos interactuar en el chat global (que es el default) en donde todos los usuarios podran intercambiar mensajes. Además, podemos tener chats individuales con los usuarios. Los mensajes que se envien durante la ejecución se guardaran en la base de datos, por lo que, luego se mostraran al entrar a el chat correspondiente. En el programa nos vamos a poder manejar a traves de comandos.
+Una vez el chat corriendo tendremos que loguearnos colocando primero un nombre de usuario y luego su contraseña, estos datos los podremos ver desde '127.0.0.1/phpmyadmin', en la base de datos 'chat'. Cuando estemos logueados ya podríamos interactuar en el chat global (que es el default) en donde todos los usuarios pueden intercambiar mensajes. Además, podemos tener chats individuales con los usuarios. Los mensajes que se envien durante la ejecución se guardarán en la base de datos, por lo que, luego se mostrarán al entrar en el chat correspondiente. 
 
     Para manejarse en el programa hay una serie de comandos:
-        1. /sendTo <username>: Seleccionar el chat en el que enviaras mensajes, si colocas 'global' iras a un chat con todos los usuarios, sino deberas colocar el username de determinado usuario.
+        1. /sendTo <username>: Seleccionar el chat en el que enviaras mensajes, si colocas 'global' iras a un chat con todos los usuarios, sino deberas colocar el nombre de usuario de determinada persona.
         2. /info: Indica el chat en el que te encuentras en ese momento.
         3. /users: Enseña todos los usuarios conectados en este momento.
         4. /help: Muestra todos los comandos disponibles y sus funciones.
