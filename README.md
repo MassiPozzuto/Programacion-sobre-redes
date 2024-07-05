@@ -1,6 +1,6 @@
 # Programación sobre redes
 
-## Chat Cliente-Servidor
+## Chat Cliente-Servidor Threading con Auth
 El programa es un chat cliente-servidor. Utiliza threading para que varios clientes puedan conectarse en simultaneo. 
 
     Requisitos y pasos para ejecutar el chat:
